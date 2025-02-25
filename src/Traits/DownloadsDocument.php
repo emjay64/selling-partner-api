@@ -81,7 +81,7 @@ trait DownloadsDocument
                 $this->encoding ?? mb_internal_encoding()
             );
         }
-
+        $this->encoding = static::$defaultEncoding; // added $this->encoding = static::$defaultEncoding;
         return $this->parseDocument($contents);
     }
 
@@ -190,7 +190,7 @@ trait DownloadsDocument
         $documentTypeInfo = null;
 
         // Check feeds first because the file is smaller
-        $feedTypes = json_decode(file_get_contents(RESOURCE_DIR.'/feeds.json'), true);
+        $feedTypes = json_decode(file_get_contents(RESOURCE_DIR . '/feeds.json'), true);
         if (isset($feedTypes[$documentTypeName])) {
             $documentTypeInfo = [
                 'name' => $documentTypeName,
@@ -200,7 +200,7 @@ trait DownloadsDocument
         }
 
         if (! $documentTypeInfo) {
-            $reportTypes = json_decode(file_get_contents(RESOURCE_DIR.'/reports.json'), true);
+            $reportTypes = json_decode(file_get_contents(RESOURCE_DIR . '/reports.json'), true);
             if (isset($reportTypes[$documentTypeName])) {
                 $documentTypeInfo = $reportTypes[$documentTypeName];
                 $documentTypeInfo['name'] = $documentTypeName;
@@ -222,14 +222,14 @@ trait DownloadsDocument
             $encoding = static::$defaultEncoding;
         } elseif (! $this->encoding) {
             // If encoding is not provided try to automatically detect the encoding from the HTTP response
-            $encodings = [static::$defaultEncoding];
+            $encodings = [static::$defaultEncoding, 'CP932']; // replaced $encodings = [static::$defaultEncoding]; with $encodings = [static::$defaultEncoding, 'CP932'];
             if ($response->hasHeader('Content-Type')) {
                 $parsed = Header::parse($response->getHeader('Content-Type'));
 
                 foreach ($parsed as $header) {
                     if ($header['charset'] ?? null) {
                         $headerEncoding = $header['charset'];
-                        array_unshift($encodings, $headerEncoding);
+                        array_unshift($encodings, str_replace("Cp1252", "ISO-8859-1", $headerEncoding)); //replaced array_unshift($encodings, $headerEncoding); with array_unshift($encodings, str_replace("Cp1252", "ISO-8859-1", $headerEncoding));
                         break;
                     }
                 }
